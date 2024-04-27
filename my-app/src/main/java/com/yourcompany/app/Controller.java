@@ -2,6 +2,7 @@ package com.yourcompany.app;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseToken;
 import com.google.firebase.auth.FirebaseAuthException;
@@ -77,6 +78,29 @@ public class Controller {
             } catch (Exception e) {
                 logger.error("Failed to update user profile", e);
                 return ResponseEntity.status(500).body("{\"error\":\"Failed to update profile: " + e.getMessage() + "\"}");
+            }
+        }
+
+        @PostMapping("/submitInterests")
+        public ResponseEntity<?> submitInterests(@RequestBody Map<String, Object> interestsData) {
+            String uid = (String) interestsData.get("uid");
+            if (uid == null || uid.isEmpty()) {
+                return ResponseEntity.badRequest().body("{\"error\":\"UID is required.\"}");
+            }
+
+            try {
+                Map<String, Double> interests = new HashMap<>();
+                interests.put("restaurant", (Double) interestsData.get("restaurant"));
+                interests.put("museum", (Double) interestsData.get("museum"));
+                interests.put("park", (Double) interestsData.get("park"));
+
+                userService.saveUserInterests(uid, interests);
+
+                return ResponseEntity.ok("{\"message\":\"Interests submitted successfully.\"}");
+            } catch (Exception e) {
+                logger.error("Failed to submit user interests", e);
+                return ResponseEntity.status(500).body("{\"error\":\"Failed to submit interests: " + e.getMessage() + "\"}");
+
             }
         }
 }
